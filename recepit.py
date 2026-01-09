@@ -1,27 +1,18 @@
 import streamlit as st
-import os
 import google.generativeai as genai
 
-# ---------------- PAGE SETUP ----------------
-st.set_page_config(
-    page_title="Receipt Nagger",
-    page_icon="💸",
-    layout="centered"
-)
+# Page setup
+st.set_page_config(page_title="Receipt Nagger", page_icon="💸", layout="centered")
 
-# ---------------- API CONFIG ----------------
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-1.5-flash")
+# ✅ GENERATIVE AI CONFIG (FIXED)
+genai.configure(api_key="AIzaSyD8teRHHuWSFARwdr8aqkrJdueM-hUU3bc")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
-# ---------------- STYLING ----------------
+# Styling
 st.markdown("""
 <style>
-.stApp {
-    background: linear-gradient(135deg, #EEF2FF, #FDF2F8);
-}
-h1 {
-    color: #5B21B6;
-}
+.stApp { background: linear-gradient(135deg, #EEF2FF, #FDF2F8); }
+h1 { color: #5B21B6; }
 div.stButton > button {
     background: linear-gradient(to right, #6366F1, #A855F7);
     color: white;
@@ -38,20 +29,15 @@ div.stButton > button {
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- UI ----------------
+# UI
 st.title("💸 Receipt Nagger")
 st.caption("Turn unclear expense notes into clean, professional emails")
 
 expense_text = st.text_area("Paste expense details:", height=120)
-tone = st.radio(
-    "Choose email tone:",
-    ["Polite", "Strict"],
-    horizontal=True
-)
+tone = st.radio("Choose email tone:", ["Polite", "Strict"], horizontal=True)
 
-# ---------------- GENERATE EMAIL ----------------
 if st.button("Generate Email"):
-    if expense_text.strip():
+    if expense_text:
         with st.spinner("Analyzing expenses..."):
 
             prompt = f"""
@@ -71,6 +57,7 @@ Expense text:
 """
 
             try:
+                # ✅ GENERATIVE AI CALL (FIXED)
                 response = model.generate_content(prompt)
                 output = response.text
 
@@ -80,23 +67,39 @@ Expense text:
                 )
 
                 st.subheader("✏️ Edit & Copy")
-                final_email = st.text_area(
-                    "Final Email:",
-                    value=output,
-                    height=220
-                )
+                final_email = st.text_area("Final Email:", value=output, height=220)
 
-                st.info("👉 Select and copy the email above")
+                # Copy to clipboard JS (UNCHANGED)
+                st.write("""
+                <script>
+                function copyToClipboard() {
+                    const text = document.querySelector('textarea').value;
+                    navigator.clipboard.writeText(text).then(() => {
+                        alert('Email copied to clipboard!');
+                    }).catch(err => {
+                        console.error('Failed to copy:', err);
+                    });
+                }
+                </script>
+                """, unsafe_allow_html=True)
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("📋 Copy to Clipboard", use_container_width=True):
+                        st.write(f"""
+                        <script>
+                        navigator.clipboard.writeText({repr(final_email)});
+                        </script>
+                        """, unsafe_allow_html=True)
+                        st.success("✅ Email copied to clipboard!")
 
             except Exception as e:
-                st.error(f"Error: {e}")
-
+                if "503" in str(e):
+                    st.warning("AI is busy. Please try again in a few seconds.")
+                else:
+                    st.error(e)
     else:
         st.warning("Please enter expense details.")
 
-# ---------------- SIDEBAR ----------------
-st.sidebar.success(
-    "✔ Saves time\n\n"
-    "✔ Reduces follow-ups\n\n"
-    "✔ Professional emails"
-)
+# Sidebar
+st.sidebar.success("✔ Saves time\n✔ Reduces follow-ups\n✔ Professional emails")
