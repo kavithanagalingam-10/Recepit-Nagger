@@ -5,7 +5,7 @@ import google.generativeai as genai
 st.set_page_config(page_title="Receipt Nagger", page_icon="💸", layout="centered")
 
 # ✅ GENERATIVE AI CONFIG (FIXED)
-genai.configure(api_key="AIzaSyD8teRHHuWSFARwdr8aqkrJdueM-hUU3bc")
+genai.configure(api_key="AIzaSyD9RTmSpAAtlfyqSXqvR4G4Fdyn5jXD2fg")
 model = genai.GenerativeModel("gemini-2.5-flash")
 
 # Styling
